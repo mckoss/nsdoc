@@ -35,6 +35,9 @@ namespace.lookup('com.pageforest.nsdoc').defineOnce(function(ns) {
                         if (value == undefined) {
                             comments[j] = '';
                         } else {
+                            if (typeof value == 'string') {
+                                value = '"' + value + '"';
+                            }
                             comments[j] = '// ' + value.toString();
                         }
                     } catch (e) {
