@@ -1,8 +1,10 @@
 // Wiki - A simple wiki base on Pageforest.
 /*globals Showdown */
-namespace.lookup('com.pageforest.wiki').defineOnce(function(ns) {
+namespace.lookup('com.pageforest.nsdoc').defineOnce(function(ns) {
     var dom = namespace.lookup('org.startpad.dom');
     var nsdoc = namespace.lookup('org.startpad.nsdoc');
+    var base = namespace.lookup('org.startpad.base');
+    var format = namespace.lookup('org.startpad.format');
     var client;
     var markdown = new Showdown.converter();
 
@@ -12,6 +14,43 @@ namespace.lookup('com.pageforest.wiki').defineOnce(function(ns) {
     var editVisible = false;
     var editorInitialized = false;
 
+    function updateScriptSections() {
+        var scripts = $('#section script');
+        for (var i = 0; i < scripts.length; i++) {
+            var script = scripts[i];
+            var body = base.strip(script.innerHTML);
+            if (script.className == '') {
+                try {
+                    eval(body);
+                } catch (e) {
+                    body += '\n/* Exception: ' + e.message + ' */';
+                }
+            } else if (script.className == 'eval-lines') {
+                var lines = body.split('\n');
+                var comments = [];
+                var max = 0;
+                for (var j = 0; j < lines.length; j++) {
+                    try {
+                        var value = eval(lines[j]);
+                        if (value == undefined) {
+                            comments[j] = '';
+                        } else {
+                            comments[j] = '// ' + value.toString();
+                        }
+                    } catch (e) {
+                        comments[j] = "// Exception: " + e.message;
+                    }
+                    max = Math.max(lines[j].length, max);
+                }
+                for (j = 0; j < lines.length; j++) {
+                    lines[j] += format.repeat(' ', max - lines[j].length + 2) + comments[j];
+                }
+                body = lines.join('\n');
+            }
+            $(script).before('<pre><code>' + body + '</code></pre>');
+        }
+    }
+
     function onEditChange() {
         var newText = page.editor.value;
         if (newText == lastMarkdown) {
@@ -20,6 +59,7 @@ namespace.lookup('com.pageforest.wiki').defineOnce(function(ns) {
         lastMarkdown = newText;
         try {
             page.section.innerHTML = markdown.makeHtml(newText);
+            updateScriptSections();
         } catch (e) {}
     }
 
@@ -41,6 +81,11 @@ namespace.lookup('com.pageforest.wiki').defineOnce(function(ns) {
         $(page.edit).val(editVisible ? 'hide' : 'edit');
     }
 
+    function updateMeta(json) {
+        document.title = json.title;
+        $('#title').text(json.title);
+    }
+
     function generateDoc() {
         var sNamespace = page.namespace.value;
         var nsGen = namespace.lookup(sNamespace);
@@ -60,11 +105,6 @@ namespace.lookup('com.pageforest.wiki').defineOnce(function(ns) {
         $(page.generate).click(generateDoc);
 
         setInterval(onEditChange, syncTime * 1000);
-    }
-
-    function updateMeta(json) {
-        document.title = json.title;
-        $('#title').text(json.title);
     }
 
     function onSaveSuccess(json) {

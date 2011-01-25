@@ -21,6 +21,7 @@ pre {
     display: block;
     background-color: #F5F5DC;
     padding: 5px 10px;
+    overflow: hidden;
 }
 
 code {
