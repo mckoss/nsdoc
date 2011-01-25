@@ -1,0 +1,27 @@
+{
+  "application": "nsdoc",
+  "cloneable": true,
+  "created": {
+    "__class__": "Date",
+    "isoformat": "2011-01-24T20:55:30.047583Z"
+  },
+  "icon": "images/icon.png",
+  "modified": {
+    "__class__": "Date",
+    "isoformat": "2011-01-25T00:17:07.575847Z"
+  },
+  "owner": "mckoss",
+  "readers": [
+    "public"
+  ],
+  "referers": [],
+  "sha1": "d0a4ac5a4ef2bc629af5207363a4d07b260c377e",
+  "size": 263,
+  "tags": [
+    "demo",
+    "sample"
+  ],
+  "title": "Namespace Documentation",
+  "url": "http://nsdoc.pageforest.com/",
+  "writers": []
+}
