@@ -1,6 +1,7 @@
 /*
  Create documentation from a JavaScript namespace.
  */
+/*jslint evil:true */
 namespace.lookup('org.startpad.nsdoc').defineOnce(function(ns)
 {
     var base = namespace.lookup('org.startpad.base');
@@ -56,8 +57,58 @@ namespace.lookup('org.startpad.nsdoc').defineOnce(function(ns)
         return s.toString();
     }
 
+    /*
+       Update embedded <script> sections and insert markdown-formatted
+       blocks to display them.
+
+       <script class="eval-lines"> can be used to eval each line and
+       append a comment with the returned value.
+    */
+    function updateScriptSections(context) {
+        var scripts = $('script', context);
+        var e;
+
+        for (var i = 0; i < scripts.length; i++) {
+            var script = scripts[i];
+            var body = base.strip(script.innerHTML);
+            if (script.className == '') {
+                try {
+                    eval(body);
+                } catch (e1) {
+                    body += '\n/* Exception: ' + e1.message + ' */';
+                }
+            } else if (script.className == 'eval-lines') {
+                var lines = body.split('\n');
+                var comments = [];
+                var max = 0;
+                for (var j = 0; j < lines.length; j++) {
+                    try {
+                        var value = eval(lines[j]);
+                        if (value == undefined) {
+                            comments[j] = '';
+                        } else {
+                            if (typeof value == 'string') {
+                                value = '"' + value + '"';
+                            }
+                            comments[j] = '// ' + value.toString();
+                        }
+                    } catch (e2) {
+                        comments[j] = "// Exception: " + e2.message;
+                    }
+                    max = Math.max(lines[j].length, max);
+                }
+                for (j = 0; j < lines.length; j++) {
+                    lines[j] += format.repeat(' ', max - lines[j].length + 2) + comments[j];
+                }
+                body = lines.join('\n');
+            }
+            $(script).before('<pre><code>' + body + '</code></pre>');
+        }
+    }
+
     ns.extend({
-        'namespaceDoc': namespaceDoc
+        'namespaceDoc': namespaceDoc,
+        'updateScriptSections': updateScriptSections
     });
 
 });
